@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор путевки</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f2f2f7;
+    margin: 0;
+    padding: 16px;
+    color: #1c1c1e;
+  }
+  h1 {
+    font-size: 20px;
+    text-align: center;
+    margin: 8px 0 20px;
+    font-weight: 600;
+  }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  label {
+    display: block;
+    font-size: 14px;
+    color: #6e6e73;
+    margin-bottom: 6px;
+    margin-top: 12px;
+  }
+  label:first-child { margin-top: 0; }
+  input, select {
+    width: 100%;
+    font-size: 17px;
+    padding: 12px 14px;
+    border: 1px solid #d1d1d6;
+    border-radius: 10px;
+    background: #fff;
+    color: #1c1c1e;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: #007aff;
+  }
+  select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236e6e73' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+  }
+  button {
+    width: 100%;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: #007aff;
+    color: #fff;
+    margin-top: 16px;
+    cursor: pointer;
+  }
+  button:active { background: #0062cc; }
+  .result {
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .result h2 {
+    font-size: 14px;
+    color: #6e6e73;
+    margin: 0 0 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f2f2f7;
+  }
+  .row:last-child { border-bottom: none; }
+  .row .label { font-size: 15px; color: #1c1c1e; }
+  .row .value { font-size: 17px; font-weight: 600; color: #1c1c1e; }
+  .row .value.big { font-size: 20px; color: #007aff; }
+  .hint {
+    font-size: 12px;
+    color: #8e8e93;
+    text-align: center;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Калькулятор путевки</h1>
+
+<div class="card">
+  <label for="car">Машина</label>
+  <select id="car"></select>
+
+  <label for="odoStart">Спидометр при выезде, км</label>
+  <input id="odoStart" type="number" inputmode="numeric" placeholder="33456">
+
+  <label for="fuelStart">Топливо при выезде, л</label>
+  <input id="fuelStart" type="number" inputmode="decimal" step="0.1" placeholder="30.0">
+
+  <label for="trip">Пробег за смену, км</label>
+  <input id="trip" type="number" inputmode="numeric" placeholder="77">
+
+  <label for="refuel">Заправка, л (если была)</label>
+  <input id="refuel" type="number" inputmode="decimal" step="0.1" placeholder="0">
+
+  <button onclick="calculate()">Посчитать</button>
+</div>
+
+<div class="result" id="result" style="display:none;">
+  <h2>Результат</h2>
+  <div class="row">
+    <span class="label">Спидометр при возвращении</span>
+    <span class="value big" id="odoEnd">—</span>
+  </div>
+  <div class="row">
+    <span class="label">Топливо при возвращении</span>
+    <span class="value big" id="fuelEnd">—</span>
+  </div>
+  <div class="row">
+    <span class="label">Израсходовано за смену</span>
+    <span class="value" id="used">—</span>
+  </div>
+  <div class="hint">Расход округлён вниз до десятых</div>
+</div>
+
+<script>
+  // === Машины и нормы расхода (л/100 км) ===
+  // Чтобы добавить машину — допиши строку по образцу
+  const cars = [
+    { name: "МАЗ",     rate: 13.6 },
+    { name: "Ситроен", rate: 11.0 },
+    { name: "Форд",    rate: 11.5 }
+  ];
+
+  // Заполняем выпадающий список
+  const carSelect = document.getElementById("car");
+  cars.forEach(function(car, i) {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = car.name + " (" + car.rate + " л/100км)";
+    carSelect.appendChild(opt);
+  });
+
+  // Округление ВНИЗ до десятых (7.38 → 7.3, 7.99 → 7.9)
+  function floor1(x) {
+    return Math.floor(x * 10) / 10;
+  }
+
+  // Форматирование до одного знака (для красоты: 7.3, 19.6)
+  function fmt1(x) {
+    return x.toFixed(1);
+  }
+
+  function calculate() {
+    const carIndex = parseInt(carSelect.value, 10);
+    const rate = cars[carIndex].rate;
+
+    const odoStart = parseFloat(document.getElementById("odoStart").value);
+    const fuelStart = parseFloat(document.getElementById("fuelStart").value);
+    const trip = parseFloat(document.getElementById("trip").value);
+    const refuelRaw = document.getElementById("refuel").value;
+    const refuel = refuelRaw === "" ? 0 : parseFloat(refuelRaw);
+
+    // Проверка ввода
+    if (isNaN(odoStart) || isNaN(fuelStart) || isNaN(trip)) {
+      alert("Заполни спидометр, топливо и пробег");
+      return;
+    }
+
+    // 1. Израсходовано = пробег × норма / 100
+    const usedRaw = trip * rate / 100;
+    const used = floor1(usedRaw);
+
+    // 2. Спидометр при возвращении
+    const odoEnd = odoStart + trip;
+
+    // 3. Топливо при возвращении = выезд + заправка − израсходовано
+    const fuelEndRaw = fuelStart + refuel - used;
+    const fuelEnd = floor1(fuelEndRaw);
+
+    // Вывод
+    document.getElementById("odoEnd").textContent = odoEnd + " км";
+    document.getElementById("fuelEnd").textContent = fmt1(fuelEnd) + " л";
+    document.getElementById("used").textContent = fmt1(used) + " л (расчёт: " + usedRaw.toFixed(3) + ")";
+    document.getElementById("result").style.display = "block";
+  }
+</script>
+
+</body>
+</html>
