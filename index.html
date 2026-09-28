@@ -34,7 +34,7 @@
     margin-top: 12px;
   }
   label:first-child { margin-top: 0; }
-  input, select {
+  input[type="number"], select {
     width: 100%;
     font-size: 17px;
     padding: 12px 14px;
@@ -45,7 +45,7 @@
     -webkit-appearance: none;
     appearance: none;
   }
-  input:focus, select:focus {
+  input[type="number"]:focus, select:focus {
     outline: none;
     border-color: #007aff;
   }
@@ -55,17 +55,21 @@
     background-position: right 14px center;
     padding-right: 38px;
   }
+
+  /* === Кнопка === */
   button.calc {
     width: 100%;
     font-size: 17px;
     font-weight: 600;
-    padding: 14px;
+    padding: 16px;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     background: #007aff;
     color: #fff;
-    margin-top: 16px;
+    margin-top: 4px;
+    margin-bottom: 14px;
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   }
   button.calc:active { background: #0062cc; }
 
@@ -103,22 +107,58 @@
   }
   .accordion.open .accordion-body { display: block; }
 
-  /* === Чекбокс === */
+  /* === Кастомный чекбокс === */
   .checkbox-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     padding: 12px 0;
     cursor: pointer;
     user-select: none;
+    -webkit-user-select: none;
   }
+  /* Прячем нативный чекбокс, но оставляем его рабочим */
   .checkbox-row input[type="checkbox"] {
-    width: 22px;
-    height: 22px;
-    margin: 0;
-    accent-color: #1c6dd0;
-    flex-shrink: 0;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
   }
+  /* Рисуем свой квадрат */
+  .checkbox-row .box {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    border: 2px solid #c7c7cc;
+    background: #fff;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    position: relative;
+  }
+  /* Галочка внутри (рисуется через псевдоэлемент) */
+  .checkbox-row .box::after {
+    content: "";
+    width: 6px;
+    height: 11px;
+    border: solid #fff;
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg) translate(-1px, -1px) scale(0);
+    transition: transform 0.15s;
+    margin-top: -2px;
+  }
+  /* Активное состояние */
+  .checkbox-row input[type="checkbox"]:checked + .box {
+    background: #1c6dd0;
+    border-color: #1c6dd0;
+  }
+  .checkbox-row input[type="checkbox"]:checked + .box::after {
+    transform: rotate(45deg) translate(-1px, -1px) scale(1);
+  }
+  /* Текст рядом */
   .checkbox-row .cb-label {
     font-size: 15px;
     color: #1c1c1e;
@@ -178,8 +218,9 @@
     font-size: 14px;
     color: #3a3a3c;
     padding: 5px 0;
+    gap: 10px;
   }
-  .detail-row span:last-child { color: #1c1c1e; font-weight: 500; }
+  .detail-row span:last-child { color: #1c1c1e; font-weight: 500; text-align: right; }
 </style>
 </head>
 <body>
@@ -201,8 +242,6 @@
 
   <label for="refuel">Заправка (л), если была</label>
   <input id="refuel" type="number" inputmode="decimal" step="0.1" placeholder="оставь пустым, если не было">
-
-  <button class="calc" onclick="calculate()">Посчитать</button>
 </div>
 
 <!-- === Зимний режим (аккордеон) === -->
@@ -214,6 +253,7 @@
   <div class="accordion-body">
     <label class="checkbox-row" for="negTemp">
       <input type="checkbox" id="negTemp" checked>
+      <span class="box"></span>
       <span class="cb-label">Отрицательная температура <span class="snowflake">❄</span></span>
     </label>
 
@@ -224,6 +264,9 @@
     <input id="coef" type="number" inputmode="decimal" step="0.01" placeholder="например 1.15">
   </div>
 </div>
+
+<!-- === Кнопка внизу, под зимним режимом === -->
+<button class="calc" onclick="calculate()">Посчитать</button>
 
 <div class="result" id="result" style="display:none;">
   <h2>Результат</h2>
@@ -256,7 +299,6 @@
     { name: "Форд",    rate: 11.7 }
   ];
 
-  // Заполняем выпадающий список
   const carSelect = document.getElementById("car");
   cars.forEach(function(car, i) {
     const opt = document.createElement("option");
@@ -265,7 +307,6 @@
     carSelect.appendChild(opt);
   });
 
-  // Округление ВНИЗ до десятых
   function floor1(x) {
     return Math.floor(x * 10) / 10;
   }
@@ -273,7 +314,6 @@
     return x.toFixed(1);
   }
 
-  // Аккордеон
   function toggleWinter() {
     document.getElementById("winterAccordion").classList.toggle("open");
   }
@@ -288,47 +328,32 @@
     const refuelRaw = document.getElementById("refuel").value;
     const refuel = refuelRaw === "" ? 0 : parseFloat(refuelRaw);
 
-    // Зимний режим
     const negTemp = document.getElementById("negTemp").checked;
     const hoursRaw = document.getElementById("engineHours").value;
     const hours = hoursRaw === "" ? 0 : parseFloat(hoursRaw);
     const coefRaw = document.getElementById("coef").value;
     const coef = coefRaw === "" ? 1 : parseFloat(coefRaw);
 
-    // Проверка ввода
     if (isNaN(odoStart) || isNaN(fuelStart) || isNaN(trip)) {
       alert("Заполни спидометр, топливо и пробег");
       return;
     }
 
-    // 1. Расход по пробегу = пробег × норма / 100
     const byTripBase = trip * rate / 100;
-
-    // 2. Умножаем на коэффициент
     const byTripWithCoef = byTripBase * coef;
-
-    // 3. Вебасто: 0.2 л/ч или 0.4 л/ч при отрицательной температуре
     const webastoRate = negTemp ? 0.4 : 0.2;
     const webasto = hours * webastoRate;
 
-    // 4. Общий расход за смену (точный)
     const totalRaw = byTripWithCoef + webasto;
-
-    // 5. Округляем ВНИЗ до десятых — это расход, который вычитаем
     const total = floor1(totalRaw);
 
-    // 6. Спидометр при возвращении
     const odoEnd = odoStart + trip;
-
-    // 7. Топливо при возвращении = выезд + заправка − общий расход
     const fuelEndRaw = fuelStart + refuel - total;
     const fuelEnd = floor1(fuelEndRaw);
 
-    // Вывод — крупно
     document.getElementById("odoEnd").textContent = odoEnd + " км";
     document.getElementById("fuelEnd").textContent = fmt1(fuelEnd) + " л";
 
-    // Мини-отчёт
     document.getElementById("dTrip").textContent = trip + " км";
     document.getElementById("dRate").textContent = rate + " л/100км";
     document.getElementById("dByTrip").textContent = fmt1(byTripBase) + " л";
