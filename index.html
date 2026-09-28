@@ -56,7 +56,6 @@
     padding-right: 38px;
   }
 
-  /* === Кнопка === */
   button.calc {
     width: 100%;
     font-size: 17px;
@@ -73,7 +72,7 @@
   }
   button.calc:active { background: #0062cc; }
 
-  /* === Аккордеон === */
+  /* === Аккордеон с плавным раскрытием === */
   .accordion {
     background: #fff;
     border-radius: 14px;
@@ -97,15 +96,21 @@
   .accordion-header .arrow {
     font-size: 14px;
     color: #8e8e93;
-    transition: transform 0.25s;
+    transition: transform 0.3s ease;
   }
   .accordion.open .arrow { transform: rotate(180deg); }
   .accordion-body {
-    display: none;
-    padding: 0 16px 16px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, padding 0.35s ease;
+    padding: 0 16px;
+    border-top: 1px solid transparent;
+  }
+  .accordion.open .accordion-body {
+    max-height: 500px;
+    padding: 4px 16px 16px;
     border-top: 1px solid #f2f2f7;
   }
-  .accordion.open .accordion-body { display: block; }
 
   /* === Кастомный чекбокс === */
   .checkbox-row {
@@ -117,7 +122,6 @@
     user-select: none;
     -webkit-user-select: none;
   }
-  /* Прячем нативный чекбокс, но оставляем его рабочим */
   .checkbox-row input[type="checkbox"] {
     position: absolute;
     opacity: 0;
@@ -125,7 +129,6 @@
     height: 0;
     pointer-events: none;
   }
-  /* Рисуем свой квадрат */
   .checkbox-row .box {
     width: 24px;
     height: 24px;
@@ -139,7 +142,6 @@
     transition: background 0.15s, border-color 0.15s;
     position: relative;
   }
-  /* Галочка внутри (рисуется через псевдоэлемент) */
   .checkbox-row .box::after {
     content: "";
     width: 6px;
@@ -150,7 +152,6 @@
     transition: transform 0.15s;
     margin-top: -2px;
   }
-  /* Активное состояние */
   .checkbox-row input[type="checkbox"]:checked + .box {
     background: #1c6dd0;
     border-color: #1c6dd0;
@@ -158,7 +159,6 @@
   .checkbox-row input[type="checkbox"]:checked + .box::after {
     transform: rotate(45deg) translate(-1px, -1px) scale(1);
   }
-  /* Текст рядом */
   .checkbox-row .cb-label {
     font-size: 15px;
     color: #1c1c1e;
@@ -172,20 +172,69 @@
     line-height: 1;
   }
 
-  /* === Результат === */
-  .result {
-    background: #fff;
-    border-radius: 14px;
+  /* === Попап результата === */
+  .popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 100;
   }
-  .result h2 {
+  .popup-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+  .popup {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 20px;
+    transform: scale(0.92);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .popup-overlay.open .popup {
+    transform: scale(1);
+    opacity: 1;
+  }
+  .popup-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f2f2f7;
+    color: #6e6e73;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 400;
+  }
+  .popup-close:active { background: #e5e5ea; }
+  .popup h2 {
     font-size: 14px;
     color: #6e6e73;
-    margin: 0 0 12px;
+    margin: 0 0 16px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    padding-right: 40px;
   }
   .row {
     display: flex;
@@ -193,10 +242,11 @@
     align-items: center;
     padding: 10px 0;
     border-bottom: 1px solid #f2f2f7;
+    gap: 10px;
   }
   .row:last-child { border-bottom: none; }
   .row .label { font-size: 15px; color: #1c1c1e; }
-  .row .value { font-size: 17px; font-weight: 600; color: #1c1c1e; }
+  .row .value { font-size: 17px; font-weight: 600; color: #1c1c1e; text-align: right; }
   .row .value.big { font-size: 20px; color: #007aff; }
 
   .details {
@@ -231,20 +281,23 @@
   <label for="car">Машина</label>
   <select id="car"></select>
 
-  <label for="odoStart">Спидометр при выезде (км)</label>
-  <input id="odoStart" type="number" inputmode="numeric" placeholder="например 33456">
+  <label for="odoStart">Спидометр при выезде</label>
+  <input id="odoStart" type="number" inputmode="numeric" placeholder="00000.0 км">
 
-  <label for="fuelStart">Топливо при выезде (л)</label>
-  <input id="fuelStart" type="number" inputmode="decimal" step="0.1" placeholder="например 30.0">
+  <label for="fuelStart">Топливо при выезде</label>
+  <input id="fuelStart" type="number" inputmode="decimal" step="0.1" placeholder="00.0 л">
 
-  <label for="trip">Пробег за смену (км)</label>
-  <input id="trip" type="number" inputmode="numeric" placeholder="например 77">
+  <label for="trip">Пробег за смену</label>
+  <input id="trip" type="number" inputmode="decimal" step="0.1" placeholder="000.0 км">
 
-  <label for="refuel">Заправка (л), если была</label>
-  <input id="refuel" type="number" inputmode="decimal" step="0.1" placeholder="оставь пустым, если не было">
+  <label for="refuel">Заправка</label>
+  <input id="refuel" type="number" inputmode="decimal" step="0.1" placeholder="00.0 л">
+
+  <label for="zeroTrip">Нулевой пробег</label>
+  <input id="zeroTrip" type="number" inputmode="decimal" step="0.1" placeholder="00.0 км">
 </div>
 
-<!-- === Зимний режим (аккордеон) === -->
+<!-- === Зимний режим === -->
 <div class="accordion" id="winterAccordion">
   <div class="accordion-header" onclick="toggleWinter()">
     <span class="title">❄️ Зимний режим</span>
@@ -257,41 +310,48 @@
       <span class="cb-label">Отрицательная температура <span class="snowflake">❄</span></span>
     </label>
 
-    <label for="engineHours">Время работы двигателя (часы, можно дробью)</label>
-    <input id="engineHours" type="number" inputmode="decimal" step="0.1" placeholder="например 3.5">
+    <label for="engineHours">Время работы двигателя</label>
+    <input id="engineHours" type="number" inputmode="decimal" step="0.1" placeholder="0.0 ч">
 
     <label for="coef">Коэффициент</label>
-    <input id="coef" type="number" inputmode="decimal" step="0.01" placeholder="например 1.15">
+    <input id="coef" type="number" inputmode="decimal" step="0.01" placeholder="1.00">
   </div>
 </div>
 
-<!-- === Кнопка внизу, под зимним режимом === -->
 <button class="calc" onclick="calculate()">Посчитать</button>
 
-<div class="result" id="result" style="display:none;">
-  <h2>Результат</h2>
-  <div class="row">
-    <span class="label">Спидометр при возвращении</span>
-    <span class="value big" id="odoEnd">—</span>
-  </div>
-  <div class="row">
-    <span class="label">Топливо при возвращении</span>
-    <span class="value big" id="fuelEnd">—</span>
-  </div>
+<!-- === Попап результата === -->
+<div class="popup-overlay" id="popupOverlay" onclick="overlayClick(event)">
+  <div class="popup">
+    <button class="popup-close" onclick="closePopup()">✕</button>
+    <h2>Результат</h2>
 
-  <div class="details" id="details">
-    <h3>Расчёт</h3>
-    <div class="detail-row"><span>Пробег за смену</span><span id="dTrip">—</span></div>
-    <div class="detail-row"><span>Норма расхода</span><span id="dRate">—</span></div>
-    <div class="detail-row"><span>Расход по пробегу</span><span id="dByTrip">—</span></div>
-    <div class="detail-row" id="rowCoef"><span>Коэффициент</span><span id="dCoef">—</span></div>
-    <div class="detail-row" id="rowWebasto"><span>Вебасто (часы × л/ч)</span><span id="dWebasto">—</span></div>
-    <div class="detail-row"><span>Общий расход за смену</span><span id="dTotal">—</span></div>
+    <div class="row" id="rowOdoEnd">
+      <span class="label" id="labelOdoEnd">Спидометр при возвращении</span>
+      <span class="value big" id="odoEnd">—</span>
+    </div>
+    <div class="row" id="rowOdoEndNoZero" style="display:none;">
+      <span class="label">Спидометр без нулевого пробега</span>
+      <span class="value big" id="odoEndNoZero">—</span>
+    </div>
+    <div class="row">
+      <span class="label">Топливо при возвращении</span>
+      <span class="value big" id="fuelEnd">—</span>
+    </div>
+
+    <div class="details">
+      <h3>Расчёт</h3>
+      <div class="detail-row"><span>Пробег за смену</span><span id="dTrip">—</span></div>
+      <div class="detail-row"><span>Норма расхода</span><span id="dRate">—</span></div>
+      <div class="detail-row"><span>Расход по пробегу</span><span id="dByTrip">—</span></div>
+      <div class="detail-row" id="rowCoef"><span>Коэффициент</span><span id="dCoef">—</span></div>
+      <div class="detail-row" id="rowWebasto"><span>Вебасто (часы × л/ч)</span><span id="dWebasto">—</span></div>
+      <div class="detail-row"><span>Общий расход за смену</span><span id="dTotal">—</span></div>
+    </div>
   </div>
 </div>
 
 <script>
-  // === Машины и нормы расхода (л/100 км) ===
   const cars = [
     { name: "МАЗ",     rate: 13.6 },
     { name: "Ситроен", rate: 12.0 },
@@ -318,6 +378,17 @@
     document.getElementById("winterAccordion").classList.toggle("open");
   }
 
+  function openPopup() {
+    document.getElementById("popupOverlay").classList.add("open");
+  }
+  function closePopup() {
+    document.getElementById("popupOverlay").classList.remove("open");
+    // Данные в полях НЕ трогаем — пользователь сам решит, что менять
+  }
+  function overlayClick(e) {
+    if (e.target.id === "popupOverlay") closePopup();
+  }
+
   function calculate() {
     const carIndex = parseInt(carSelect.value, 10);
     const rate = cars[carIndex].rate;
@@ -327,6 +398,8 @@
     const trip = parseFloat(document.getElementById("trip").value);
     const refuelRaw = document.getElementById("refuel").value;
     const refuel = refuelRaw === "" ? 0 : parseFloat(refuelRaw);
+    const zeroRaw = document.getElementById("zeroTrip").value;
+    const zeroTrip = zeroRaw === "" ? null : parseFloat(zeroRaw);
 
     const negTemp = document.getElementById("negTemp").checked;
     const hoursRaw = document.getElementById("engineHours").value;
@@ -350,6 +423,17 @@
     const odoEnd = odoStart + trip;
     const fuelEndRaw = fuelStart + refuel - total;
     const fuelEnd = floor1(fuelEndRaw);
+
+    // Спидометр без нулевого пробега
+    if (zeroTrip !== null && zeroTrip > 0) {
+      const odoEndNoZero = odoStart + (trip - zeroTrip);
+      document.getElementById("odoEndNoZero").textContent = odoEndNoZero + " км";
+      document.getElementById("rowOdoEndNoZero").style.display = "flex";
+      document.getElementById("labelOdoEnd").textContent = "Спидометр при возвращении (общий)";
+    } else {
+      document.getElementById("rowOdoEndNoZero").style.display = "none";
+      document.getElementById("labelOdoEnd").textContent = "Спидометр при возвращении";
+    }
 
     document.getElementById("odoEnd").textContent = odoEnd + " км";
     document.getElementById("fuelEnd").textContent = fmt1(fuelEnd) + " л";
@@ -376,7 +460,7 @@
     document.getElementById("dTotal").textContent =
       fmt1(total) + " л (точно: " + totalRaw.toFixed(3) + ")";
 
-    document.getElementById("result").style.display = "block";
+    openPopup();
   }
 </script>
 
