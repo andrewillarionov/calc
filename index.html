@@ -3,33 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Калькулятор путевки</title>
+<title>🚛 Калькулятор путевки</title>
 <style>
+  :root {
+    --bg: #f2f2f7;
+    --card: #ffffff;
+    --text: #1c1c1e;
+    --text-dim: #6e6e73;
+    --text-light: #8e8e93;
+    --border: #d1d1d6;
+    --border-light: #f2f2f7;
+    --accent: #007aff;
+    --accent-pressed: #0062cc;
+    --error: #ff3b30;
+    --error-bg: #ffe5e3;
+    --warn: #ff9500;
+    --warn-bg: #fff4e0;
+    --overlay: rgba(0,0,0,0.4);
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-popup: 0 10px 40px rgba(0,0,0,0.2);
+    --btn-close-bg: #f2f2f7;
+    --btn-close-pressed: #e5e5ea;
+  }
+
+  [data-theme="dark"] {
+    --bg: #000000;
+    --card: #1c1c1e;
+    --text: #ffffff;
+    --text-dim: #8e8e93;
+    --text-light: #6e6e73;
+    --border: #38383a;
+    --border-light: #2c2c2e;
+    --accent: #0a84ff;
+    --accent-pressed: #0062cc;
+    --error: #ff453a;
+    --error-bg: #3a1c1a;
+    --warn: #ff9f0a;
+    --warn-bg: #3a2c14;
+    --overlay: rgba(0,0,0,0.6);
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-popup: 0 10px 40px rgba(0,0,0,0.6);
+    --btn-close-bg: #2c2c2e;
+    --btn-close-pressed: #3a3a3c;
+  }
+
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #f2f2f7;
+    background: var(--bg);
     margin: 0;
     padding: 16px;
-    color: #1c1c1e;
+    color: var(--text);
+    transition: background 0.25s, color 0.25s;
   }
-  h1 {
-    font-size: 20px;
-    text-align: center;
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin: 8px 0 20px;
-    font-weight: 600;
   }
+  .topbar h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+    text-align: center;
+  }
+  .theme-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--card);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .theme-btn:active { background: var(--btn-close-pressed); }
+
   .card {
-    background: #fff;
+    background: var(--card);
     border-radius: 14px;
     padding: 16px;
     margin-bottom: 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    box-shadow: var(--shadow);
+    transition: background 0.25s;
   }
   label {
     display: block;
     font-size: 14px;
-    color: #6e6e73;
+    color: var(--text-dim);
     margin-bottom: 6px;
     margin-top: 12px;
   }
@@ -38,47 +108,68 @@
     width: 100%;
     font-size: 17px;
     padding: 12px 14px;
-    border: 1px solid #d1d1d6;
+    border: 1px solid var(--border);
     border-radius: 10px;
-    background: #fff;
-    color: #1c1c1e;
+    background: var(--card);
+    color: var(--text);
     -webkit-appearance: none;
     appearance: none;
+    transition: border-color 0.15s, background 0.25s, color 0.25s;
   }
   input[type="number"]:focus, select:focus {
     outline: none;
-    border-color: #007aff;
+    border-color: var(--accent);
   }
   select {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236e6e73' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238e8e93' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 14px center;
     padding-right: 38px;
   }
 
+  /* Две кнопки в ряд */
+  .buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
   button.calc {
-    width: 100%;
+    flex: 2;
     font-size: 17px;
     font-weight: 600;
     padding: 16px;
     border: none;
     border-radius: 14px;
-    background: #007aff;
+    background: var(--accent);
     color: #fff;
-    margin-top: 4px;
-    margin-bottom: 14px;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    box-shadow: var(--shadow);
+    transition: background 0.15s;
   }
-  button.calc:active { background: #0062cc; }
+  button.calc:active { background: var(--accent-pressed); }
+  button.clear {
+    flex: 1;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--text);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  button.clear:active { background: var(--btn-close-pressed); }
 
-  /* === Аккордеон с плавным раскрытием === */
+  /* Аккордеон */
   .accordion {
-    background: #fff;
+    background: var(--card);
     border-radius: 14px;
     margin-bottom: 14px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    box-shadow: var(--shadow);
     overflow: hidden;
+    transition: background 0.25s;
   }
   .accordion-header {
     display: flex;
@@ -91,11 +182,11 @@
   .accordion-header .title {
     font-size: 16px;
     font-weight: 600;
-    color: #1c1c1e;
+    color: var(--text);
   }
   .accordion-header .arrow {
     font-size: 14px;
-    color: #8e8e93;
+    color: var(--text-light);
     transition: transform 0.3s ease;
   }
   .accordion.open .arrow { transform: rotate(180deg); }
@@ -109,10 +200,10 @@
   .accordion.open .accordion-body {
     max-height: 500px;
     padding: 4px 16px 16px;
-    border-top: 1px solid #f2f2f7;
+    border-top: 1px solid var(--border-light);
   }
 
-  /* === Кастомный чекбокс === */
+  /* Чекбокс */
   .checkbox-row {
     display: flex;
     align-items: center;
@@ -133,8 +224,8 @@
     width: 24px;
     height: 24px;
     border-radius: 7px;
-    border: 2px solid #c7c7cc;
-    background: #fff;
+    border: 2px solid var(--border);
+    background: var(--card);
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -161,22 +252,18 @@
   }
   .checkbox-row .cb-label {
     font-size: 15px;
-    color: #1c1c1e;
+    color: var(--text);
     display: flex;
     align-items: center;
     gap: 6px;
   }
-  .snowflake {
-    color: #1c6dd0;
-    font-size: 17px;
-    line-height: 1;
-  }
+  .snowflake { color: #1c6dd0; font-size: 17px; line-height: 1; }
 
-  /* === Попап результата === */
+  /* Попап */
   .popup-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: var(--overlay);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -186,12 +273,9 @@
     transition: opacity 0.3s ease, visibility 0.3s ease;
     z-index: 100;
   }
-  .popup-overlay.open {
-    opacity: 1;
-    visibility: visible;
-  }
+  .popup-overlay.open { opacity: 1; visibility: visible; }
   .popup {
-    background: #fff;
+    background: var(--card);
     border-radius: 18px;
     width: 100%;
     max-width: 420px;
@@ -200,14 +284,11 @@
     padding: 20px;
     transform: scale(0.92);
     opacity: 0;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background 0.25s;
     position: relative;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-popup);
   }
-  .popup-overlay.open .popup {
-    transform: scale(1);
-    opacity: 1;
-  }
+  .popup-overlay.open .popup { transform: scale(1); opacity: 1; }
   .popup-close {
     position: absolute;
     top: 10px;
@@ -216,20 +297,19 @@
     height: 36px;
     border-radius: 50%;
     border: none;
-    background: #f2f2f7;
-    color: #6e6e73;
+    background: var(--btn-close-bg);
+    color: var(--text-dim);
     font-size: 20px;
     line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 400;
   }
-  .popup-close:active { background: #e5e5ea; }
+  .popup-close:active { background: var(--btn-close-pressed); }
   .popup h2 {
     font-size: 14px;
-    color: #6e6e73;
+    color: var(--text-dim);
     margin: 0 0 16px;
     font-weight: 600;
     text-transform: uppercase;
@@ -241,22 +321,43 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 0;
-    border-bottom: 1px solid #f2f2f7;
+    border-bottom: 1px solid var(--border-light);
     gap: 10px;
   }
   .row:last-child { border-bottom: none; }
-  .row .label { font-size: 15px; color: #1c1c1e; }
-  .row .value { font-size: 17px; font-weight: 600; color: #1c1c1e; text-align: right; }
-  .row .value.big { font-size: 20px; color: #007aff; }
+  .row .label { font-size: 15px; color: var(--text); }
+  .row .value { font-size: 17px; font-weight: 600; color: var(--text); text-align: right; }
+  .row .value.big { font-size: 20px; color: var(--accent); }
+
+  /* Предупреждения */
+  .alert {
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .alert.warn {
+    background: var(--warn-bg);
+    color: var(--warn);
+  }
+  .alert.error {
+    background: var(--error-bg);
+    color: var(--error);
+    font-weight: 600;
+  }
 
   .details {
     margin-top: 14px;
     padding-top: 14px;
-    border-top: 1px solid #f2f2f7;
+    border-top: 1px solid var(--border-light);
   }
   .details h3 {
     font-size: 13px;
-    color: #8e8e93;
+    color: var(--text-light);
     margin: 0 0 8px;
     font-weight: 600;
     text-transform: uppercase;
@@ -266,16 +367,20 @@
     display: flex;
     justify-content: space-between;
     font-size: 14px;
-    color: #3a3a3c;
+    color: var(--text-dim);
     padding: 5px 0;
     gap: 10px;
   }
-  .detail-row span:last-child { color: #1c1c1e; font-weight: 500; text-align: right; }
+  .detail-row span:last-child { color: var(--text); font-weight: 500; text-align: right; }
 </style>
 </head>
 <body>
 
-<h1>Калькулятор путевки</h1>
+<div class="topbar">
+  <div style="width:40px;"></div>
+  <h1>🚛 Калькулятор путевки</h1>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
+</div>
 
 <div class="card">
   <label for="car">Машина</label>
@@ -297,7 +402,6 @@
   <input id="zeroTrip" type="number" inputmode="decimal" step="0.1" placeholder="00.0 км">
 </div>
 
-<!-- === Зимний режим === -->
 <div class="accordion" id="winterAccordion">
   <div class="accordion-header" onclick="toggleWinter()">
     <span class="title">❄️ Зимний режим</span>
@@ -318,13 +422,17 @@
   </div>
 </div>
 
-<button class="calc" onclick="calculate()">Посчитать</button>
+<div class="buttons">
+  <button class="calc" onclick="calculate()">Посчитать</button>
+  <button class="clear" onclick="clearFields()">Очистить</button>
+</div>
 
-<!-- === Попап результата === -->
 <div class="popup-overlay" id="popupOverlay" onclick="overlayClick(event)">
   <div class="popup">
     <button class="popup-close" onclick="closePopup()">✕</button>
     <h2>Результат</h2>
+
+    <div id="alerts"></div>
 
     <div class="row" id="rowOdoEnd">
       <span class="label" id="labelOdoEnd">Спидометр при возвращении</span>
@@ -353,29 +461,74 @@
 
 <script>
   const cars = [
-    { name: "МАЗ",     rate: 13.6 },
-    { name: "Ситроен", rate: 12.0 },
-    { name: "Форд",    rate: 11.5 },
-    { name: "Форд",    rate: 11.7 }
+    { name: "МАЗ",     rate: 13.6, tank: 80 },
+    { name: "Ситроен", rate: 12.0, tank: 90 },
+    { name: "Форд",    rate: 11.5, tank: 80 },
+    { name: "Форд",    rate: 11.7, tank: 80 }
   ];
+
+  // === Запоминание выбранной машины ===
+  const savedCar = localStorage.getItem("calc_car_index");
+  const initialCarIndex = savedCar !== null ? parseInt(savedCar, 10) : 0;
 
   const carSelect = document.getElementById("car");
   cars.forEach(function(car, i) {
     const opt = document.createElement("option");
     opt.value = i;
-    opt.textContent = car.name + " (" + car.rate + " л/100км)";
+    opt.textContent = car.name + " (" + car.rate + " л/100км, бак " + car.tank + " л)";
     carSelect.appendChild(opt);
   });
+  carSelect.value = initialCarIndex;
 
-  function floor1(x) {
-    return Math.floor(x * 10) / 10;
+  carSelect.addEventListener("change", function() {
+    localStorage.setItem("calc_car_index", carSelect.value);
+  });
+
+  // === Тема ===
+  const themeBtn = document.getElementById("themeBtn");
+  const savedTheme = localStorage.getItem("calc_theme");
+
+  function applyTheme(theme) {
+    if (theme === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+      themeBtn.textContent = "☀️";
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+      themeBtn.textContent = "🌙";
+    }
   }
-  function fmt1(x) {
-    return x.toFixed(1);
+
+  // Системная тема по умолчанию
+  const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(savedTheme || (systemDark ? "dark" : "light"));
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    const next = current === "dark" ? "light" : "dark";
+    applyTheme(next);
+    localStorage.setItem("calc_theme", next);
+    vibrate(15);
   }
+
+  // === Вибрация ===
+  function vibrate(ms) {
+    if (navigator.vibrate) {
+      try { navigator.vibrate(ms); } catch (e) {}
+    }
+  }
+  function vibratePattern(pattern) {
+    if (navigator.vibrate) {
+      try { navigator.vibrate(pattern); } catch (e) {}
+    }
+  }
+
+  // === Округление ===
+  function floor1(x) { return Math.floor(x * 10) / 10; }
+  function fmt1(x) { return x.toFixed(1); }
 
   function toggleWinter() {
     document.getElementById("winterAccordion").classList.toggle("open");
+    vibrate(10);
   }
 
   function openPopup() {
@@ -383,15 +536,27 @@
   }
   function closePopup() {
     document.getElementById("popupOverlay").classList.remove("open");
-    // Данные в полях НЕ трогаем — пользователь сам решит, что менять
   }
   function overlayClick(e) {
     if (e.target.id === "popupOverlay") closePopup();
   }
 
+  function clearFields() {
+    document.getElementById("odoStart").value = "";
+    document.getElementById("fuelStart").value = "";
+    document.getElementById("trip").value = "";
+    document.getElementById("refuel").value = "";
+    document.getElementById("zeroTrip").value = "";
+    document.getElementById("engineHours").value = "";
+    document.getElementById("coef").value = "";
+    vibrate(20);
+  }
+
   function calculate() {
     const carIndex = parseInt(carSelect.value, 10);
-    const rate = cars[carIndex].rate;
+    const car = cars[carIndex];
+    const rate = car.rate;
+    const tank = car.tank;
 
     const odoStart = parseFloat(document.getElementById("odoStart").value);
     const fuelStart = parseFloat(document.getElementById("fuelStart").value);
@@ -408,6 +573,7 @@
     const coef = coefRaw === "" ? 1 : parseFloat(coefRaw);
 
     if (isNaN(odoStart) || isNaN(fuelStart) || isNaN(trip)) {
+      vibratePattern([50, 30, 50]);
       alert("Заполни спидометр, топливо и пробег");
       return;
     }
@@ -416,7 +582,6 @@
     const byTripWithCoef = byTripBase * coef;
     const webastoRate = negTemp ? 0.4 : 0.2;
     const webasto = hours * webastoRate;
-
     const totalRaw = byTripWithCoef + webasto;
     const total = floor1(totalRaw);
 
@@ -424,7 +589,35 @@
     const fuelEndRaw = fuelStart + refuel - total;
     const fuelEnd = floor1(fuelEndRaw);
 
-    // Спидометр без нулевого пробега
+    // === Предупреждения ===
+    const alertsBox = document.getElementById("alerts");
+    alertsBox.innerHTML = "";
+    let hasError = false;
+    let hasWarn = false;
+
+    if (fuelEnd < 0) {
+      alertsBox.innerHTML += '<div class="alert error">⚠️ ТОПЛИВО УШЛО В МИНУС! Проверь данные.</div>';
+      hasError = true;
+    } else if (fuelEnd > tank) {
+      alertsBox.innerHTML += '<div class="alert error">⚠️ Топлива больше, чем объём бака (' + tank + ' л)! Проверь данные.</div>';
+      hasError = true;
+    }
+
+    if (!hasError && fuelEnd < 20) {
+      alertsBox.innerHTML += '<div class="alert warn">🔸 Малый остаток топлива: ' + fmt1(fuelEnd) + ' л</div>';
+      hasWarn = true;
+    }
+
+    // Вибрация по итогу
+    if (hasError) {
+      vibratePattern([200, 80, 200, 80, 200]); // долгая тревожная
+    } else if (hasWarn) {
+      vibrate(80); // короткая
+    } else {
+      vibrate(15);
+    }
+
+    // Спидометр без нулевого
     if (zeroTrip !== null && zeroTrip > 0) {
       const odoEndNoZero = odoStart + (trip - zeroTrip);
       document.getElementById("odoEndNoZero").textContent = odoEndNoZero + " км";
