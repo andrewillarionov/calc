@@ -75,25 +75,25 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 8px 0 20px;
+    margin: 8px 0 6px;
     gap: 10px;
   }
   .topbar h1 {
     font-size: 22px;
     font-weight: 700;
     margin: 0;
-    flex: 1;
   }
-  .topbar .date {
+  .topbar .theme-switch {
+    flex-shrink: 0;
+  }
+
+  /* Дата — отдельной строкой, по центру экрана */
+  .date-line {
     font-size: 15px;
     font-weight: 600;
     color: var(--text);
     text-align: center;
-    flex: 1;
-    white-space: nowrap;
-  }
-  .topbar .theme-switch {
-    flex-shrink: 0;
+    margin: 0 0 20px;
   }
 
   .theme-switch {
@@ -470,13 +470,13 @@
 
 <div class="topbar">
   <h1>Путевка</h1>
-  <div class="date" id="dateLine"></div>
   <div class="theme-switch" onclick="toggleTheme()">
     <span class="icon sun">☀️</span>
     <span class="icon moon">🌙</span>
     <span class="knob"></span>
   </div>
 </div>
+<div class="date-line" id="dateLine"></div>
 
 <div class="card">
   <label for="car">Машина</label>
@@ -679,12 +679,15 @@
   onlyDigits("trip");
   onlyDigits("zeroTrip");
 
+  // Принимает и точку, и запятую. Разрешает одну дробную часть до 1 знака.
   function decimal1(inputId) {
     const el = document.getElementById(inputId);
     el.addEventListener("input", function() {
-      let v = el.value.replace(/[^0-9.]/g, "");
+      // заменяем запятую на точку
+      let v = el.value.replace(/,/g, ".").replace(/[^0-9.]/g, "");
       const firstDot = v.indexOf(".");
       if (firstDot !== -1) {
+        // оставляем только первую точку
         v = v.substring(0, firstDot + 1) + v.substring(firstDot + 1).replace(/\./g, "");
         const parts = v.split(".");
         if (parts[1] && parts[1].length > 1) {
@@ -822,7 +825,7 @@
     const useCustomRate = document.getElementById("useCustomRate").checked;
     let rate;
     if (useCustomRate) {
-      const cr = parseFloat(document.getElementById("customRate").value);
+      const cr = parseFloat(document.getElementById("customRate").value.replace(",", "."));
       if (isNaN(cr) || cr <= 0) {
         vibratePattern([50, 30, 50]);
         alert("Введи корректный «Другой расход»");
