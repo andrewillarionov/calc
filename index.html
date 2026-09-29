@@ -30,6 +30,8 @@
     --switch-bg: #e5e5ea;
     --switch-knob: #ffffff;
     --progress-bg: #e5e5ea;
+    --gap: 14px;
+    --gap-label: 6px;
   }
 
   [data-theme="dark"] {
@@ -73,19 +75,25 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 8px 0 6px;
+    margin: 8px 0 20px;
     gap: 10px;
   }
   .topbar h1 {
     font-size: 22px;
     font-weight: 700;
     margin: 0;
+    flex: 1;
   }
   .topbar .date {
-    font-size: 13px;
-    color: var(--text-dim);
-    margin-bottom: 16px;
-    text-align: left;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+    flex: 1;
+    white-space: nowrap;
+  }
+  .topbar .theme-switch {
+    flex-shrink: 0;
   }
 
   .theme-switch {
@@ -95,7 +103,6 @@
     background: var(--switch-bg);
     border-radius: 18px;
     cursor: pointer;
-    flex-shrink: 0;
     transition: background 0.25s;
     display: flex;
     align-items: center;
@@ -135,18 +142,22 @@
     background: var(--card);
     border-radius: 14px;
     padding: 16px;
-    margin-bottom: 14px;
+    margin-bottom: var(--gap);
     box-shadow: var(--shadow);
     transition: background 0.25s;
   }
+
   label {
     display: block;
     font-size: 14px;
     color: var(--text-dim);
-    margin-bottom: 6px;
-    margin-top: 12px;
+    margin: 0 0 var(--gap-label);
   }
-  label:first-child { margin-top: 0; }
+  .card > label:first-child,
+  .accordion-body > label:first-child {
+    margin-top: 0;
+  }
+
   input[type="number"], input[type="text"], select {
     width: 100%;
     font-size: 17px;
@@ -177,7 +188,7 @@
   .buttons {
     display: flex;
     gap: 10px;
-    margin-bottom: 14px;
+    margin-bottom: var(--gap);
   }
   button.calc {
     flex: 2;
@@ -211,7 +222,7 @@
   .accordion {
     background: var(--card);
     border-radius: 14px;
-    margin-bottom: 14px;
+    margin-bottom: var(--gap);
     box-shadow: var(--shadow);
     overflow: hidden;
     transition: background 0.25s;
@@ -252,10 +263,14 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 0;
+    padding: 4px 0;
+    margin-top: var(--gap);
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
+  }
+  .checkbox-row:first-child {
+    margin-top: 0;
   }
   .checkbox-row input[type="checkbox"] {
     position: absolute;
@@ -308,10 +323,12 @@
     overflow: hidden;
     transition: max-height 0.3s ease, opacity 0.3s ease;
     opacity: 0;
+    margin-top: 0;
   }
   .optional-field.open {
     max-height: 120px;
     opacity: 1;
+    margin-top: var(--gap-label);
   }
 
   .popup-overlay {
@@ -397,7 +414,6 @@
   .alert.error { background: var(--error-bg); color: var(--error); font-weight: 600; }
   .alert.success { background: var(--success-bg); color: var(--success); font-weight: 600; }
 
-  /* Прогресс-бар бака */
   .progress-wrap {
     margin: 12px 0 6px;
   }
@@ -454,19 +470,19 @@
 
 <div class="topbar">
   <h1>Путевка</h1>
+  <div class="date" id="dateLine"></div>
   <div class="theme-switch" onclick="toggleTheme()">
     <span class="icon sun">☀️</span>
     <span class="icon moon">🌙</span>
     <span class="knob"></span>
   </div>
 </div>
-<div class="date" id="dateLine"></div>
 
 <div class="card">
   <label for="car">Машина</label>
   <select id="car"></select>
 
-  <label class="checkbox-row" for="useCustomRate" style="margin-top:6px;">
+  <label class="checkbox-row" for="useCustomRate">
     <input type="checkbox" id="useCustomRate">
     <span class="box"></span>
     <span class="cb-label">Другой расход (свой)</span>
@@ -475,16 +491,16 @@
     <input id="customRate" type="text" inputmode="decimal" placeholder="00.0 л/100км">
   </div>
 
-  <label for="odoStart">Спидометр при выезде</label>
+  <label for="odoStart" style="margin-top: var(--gap);">Спидометр при выезде</label>
   <input id="odoStart" type="number" inputmode="numeric" step="1" placeholder="00000 км">
 
-  <label for="fuelStart">Топливо при выезде</label>
+  <label for="fuelStart" style="margin-top: var(--gap);">Топливо при выезде</label>
   <input id="fuelStart" type="number" inputmode="decimal" step="0.1" placeholder="00.0 л">
 
-  <label for="trip">Пробег за смену</label>
+  <label for="trip" style="margin-top: var(--gap);">Пробег за смену</label>
   <input id="trip" type="number" inputmode="numeric" step="1" placeholder="000 км">
 
-  <label for="refuel">Заправка</label>
+  <label for="refuel" style="margin-top: var(--gap);">Заправка</label>
   <input id="refuel" type="number" inputmode="decimal" step="0.1" placeholder="00.0 л">
 
   <label class="checkbox-row" for="useZeroTrip">
@@ -518,10 +534,10 @@
       <span class="cb-label">Отрицательная температура <span class="snowflake">❄</span></span>
     </label>
 
-    <label for="engineHours">Время работы двигателя (макс. 12 ч)</label>
+    <label for="engineHours" style="margin-top: var(--gap);">Время работы двигателя (макс. 12 ч)</label>
     <input id="engineHours" type="number" inputmode="decimal" step="0.1" placeholder="0.0 ч">
 
-    <label for="coef">Коэффициент</label>
+    <label for="coef" style="margin-top: var(--gap);">Коэффициент</label>
     <input id="coef" type="number" inputmode="decimal" step="0.01" placeholder="1.00">
   </div>
 </div>
@@ -592,7 +608,6 @@
     carSelect.appendChild(opt);
   });
 
-  // === Дата ===
   function updateDate() {
     const d = new Date();
     const months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
@@ -602,7 +617,6 @@
   }
   updateDate();
 
-  // === Тема ===
   const savedTheme = localStorage.getItem("calc_theme");
 
   function applyTheme(theme) {
@@ -613,7 +627,6 @@
     }
   }
 
-  // При первом запуске — по времени суток (07:00–19:00 светлая)
   function themeByTime() {
     const h = new Date().getHours();
     return (h >= 7 && h < 19) ? "light" : "dark";
@@ -655,7 +668,6 @@
     if (e.target.id === "popupOverlay") closePopup();
   }
 
-  // === Только цифры ===
   function onlyDigits(inputId) {
     const el = document.getElementById(inputId);
     el.addEventListener("input", function() {
@@ -667,7 +679,6 @@
   onlyDigits("trip");
   onlyDigits("zeroTrip");
 
-  // === Расход до десятых (цифры + одна точка, максимум 1 знак) ===
   function decimal1(inputId) {
     const el = document.getElementById(inputId);
     el.addEventListener("input", function() {
@@ -685,7 +696,6 @@
   }
   decimal1("customRate");
 
-  // === Опциональные поля ===
   function bindOptional(checkboxId, fieldId) {
     const cb = document.getElementById(checkboxId);
     const field = document.getElementById(fieldId);
@@ -700,7 +710,6 @@
   bindOptional("useActualFuel", "actualFuelField");
   bindOptional("useCustomRate", "customRateField");
 
-  // === Автосохранение черновика ===
   const draftFields = ["odoStart","fuelStart","trip","refuel","zeroTrip","actualFuel","engineHours","coef","customRate"];
   const draftCheckboxes = ["useZeroTrip","useActualFuel","useCustomRate","negTemp"];
 
@@ -726,7 +735,6 @@
       if (!raw) return;
       const data = JSON.parse(raw);
       if (data.carIndex !== undefined) {
-        // Восстановить машину или сохранённую ранее (если есть отдельный ключ)
         carSelect.value = data.carIndex;
       }
       if (data.checkboxes) {
@@ -746,14 +754,12 @@
       if (data.winterOpen) {
         document.getElementById("winterAccordion").classList.add("open");
       }
-      // Обновить видимость опциональных полей
       bindOptional("useZeroTrip", "zeroTripField");
       bindOptional("useActualFuel", "actualFuelField");
       bindOptional("useCustomRate", "customRateField");
     } catch (e) {}
   }
 
-  // Навешиваем автосохранение на все поля
   draftFields.forEach(function(id) {
     document.getElementById(id).addEventListener("input", saveDraft);
   });
@@ -779,14 +785,13 @@
     vibrate(20);
   }
 
-  // === Анимация счётчика ===
   function animateValue(el, endValue, suffix, decimals) {
     const duration = 500;
     const start = performance.now();
     const startValue = 0;
     function tick(now) {
       const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3);
       const current = startValue + (endValue - startValue) * eased;
       el.textContent = current.toFixed(decimals) + suffix;
       if (t < 1) requestAnimationFrame(tick);
@@ -795,7 +800,6 @@
     requestAnimationFrame(tick);
   }
 
-  // === Прогресс-бар бака ===
   function updateProgress(fuelEnd, tank) {
     const percent = Math.max(0, Math.min(100, (fuelEnd / tank) * 100));
     const fill = document.getElementById("progressFill");
@@ -809,7 +813,6 @@
   }
 
   function calculate() {
-    // Сброс подсветки ошибок
     document.getElementById("engineHours").classList.remove("error");
 
     const carIndex = parseInt(carSelect.value, 10);
@@ -862,7 +865,6 @@
       return;
     }
 
-    // Проверка нулевого
     if (zeroTrip !== null) {
       if (zeroTrip < 0 || zeroTrip > trip) {
         vibratePattern([200, 80, 200, 80, 200]);
@@ -871,7 +873,6 @@
       }
     }
 
-    // Проверка Вебасто — не больше 12 ч
     if (hours > 12) {
       document.getElementById("engineHours").classList.add("error");
       vibratePattern([200, 80, 200, 80, 200]);
@@ -912,7 +913,6 @@
     else if (hasWarn) vibrate(80);
     else vibrate(15);
 
-    // Нулевой
     if (zeroTrip !== null && zeroTrip > 0) {
       const odoEndNoZero = odoStart + (trip - zeroTrip);
       document.getElementById("odoEndNoZero").textContent = odoEndNoZero + " км";
@@ -923,11 +923,9 @@
       document.getElementById("labelOdoEnd").textContent = "Спидометр при возвращении";
     }
 
-    // Анимация счётчиков
     animateValue(document.getElementById("odoEnd"), odoEnd, " км", 0);
     animateValue(document.getElementById("fuelEnd"), fuelEnd, " л", 1);
 
-    // Прогресс-бар
     updateProgress(fuelEnd, tank);
 
     document.getElementById("dTrip").textContent = trip + " км";
@@ -952,7 +950,6 @@
     document.getElementById("dTotal").textContent =
       fmt1(total) + " л (точно: " + totalRaw.toFixed(3) + ")";
 
-    // Факт vs расчёт
     if (actualFuel !== null) {
       const diff = actualFuel - fuelEnd;
       const row = document.getElementById("rowActual");
