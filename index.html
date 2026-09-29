@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Путевка</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛽</text></svg>">
 <style>
   :root {
     --bg: #f2f2f7;
@@ -76,7 +77,6 @@
     flex: 1;
   }
 
-  /* === Свитч темы === */
   .theme-switch {
     position: relative;
     width: 74px;
@@ -417,19 +417,19 @@
   <select id="car"></select>
 
   <label for="odoStart">Спидометр при выезде</label>
-  <input id="odoStart" type="number" inputmode="numeric" placeholder="00000.0 км">
+  <input id="odoStart" type="number" inputmode="numeric" step="1" placeholder="00000 км">
 
   <label for="fuelStart">Топливо при выезде</label>
   <input id="fuelStart" type="number" inputmode="decimal" step="0.1" placeholder="00.0 л">
 
   <label for="trip">Пробег за смену</label>
-  <input id="trip" type="number" inputmode="decimal" step="0.1" placeholder="000.0 км">
+  <input id="trip" type="number" inputmode="numeric" step="1" placeholder="000 км">
 
   <label for="refuel">Заправка</label>
   <input id="refuel" type="number" inputmode="decimal" step="0.1" placeholder="00.0 л">
 
   <label for="zeroTrip">Нулевой пробег</label>
-  <input id="zeroTrip" type="number" inputmode="decimal" step="0.1" placeholder="00.0 км">
+  <input id="zeroTrip" type="number" inputmode="numeric" step="1" placeholder="00 км">
 </div>
 
 <div class="accordion" id="winterAccordion">
@@ -574,6 +574,19 @@
     vibrate(20);
   }
 
+  // === Ограничение целых чисел в полях: спидометр, пробег, нулевой ===
+  function onlyDigits(inputId) {
+    const el = document.getElementById(inputId);
+    el.addEventListener("input", function() {
+      // Убираем всё, кроме цифр
+      const cleaned = el.value.replace(/[^0-9]/g, "");
+      if (cleaned !== el.value) el.value = cleaned;
+    });
+  }
+  onlyDigits("odoStart");
+  onlyDigits("trip");
+  onlyDigits("zeroTrip");
+
   function calculate() {
     const carIndex = parseInt(carSelect.value, 10);
     const car = cars[carIndex];
@@ -594,10 +607,25 @@
     const coefRaw = document.getElementById("coef").value;
     const coef = coefRaw === "" ? 1 : parseFloat(coefRaw);
 
+    // Основная проверка
     if (isNaN(odoStart) || isNaN(fuelStart) || isNaN(trip)) {
       vibratePattern([50, 30, 50]);
       alert("Заполни спидометр, топливо и пробег");
       return;
+    }
+
+    // === Проверка нулевого пробега ===
+    if (zeroTrip !== null) {
+      if (zeroTrip < 0) {
+        vibratePattern([200, 80, 200, 80, 200]);
+        alert("Нулевой пробег не может быть отрицательным!");
+        return;
+      }
+      if (zeroTrip > trip) {
+        vibratePattern([200, 80, 200, 80, 200]);
+        alert("Нулевой пробег (" + zeroTrip + " км) больше, чем пробег за смену (" + trip + " км)!\n\nТакого не может быть — проверь данные.");
+        return;
+      }
     }
 
     const byTripBase = trip * rate / 100;
