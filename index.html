@@ -20,6 +20,8 @@
     --error-bg: #ffe5e3;
     --warn: #ff9500;
     --warn-bg: #fff4e0;
+    --success: #34c759;
+    --success-bg: #e3f9e7;
     --overlay: rgba(0,0,0,0.4);
     --shadow: 0 1px 3px rgba(0,0,0,0.06);
     --shadow-popup: 0 10px 40px rgba(0,0,0,0.2);
@@ -27,6 +29,7 @@
     --btn-close-pressed: #e5e5ea;
     --switch-bg: #e5e5ea;
     --switch-knob: #ffffff;
+    --progress-bg: #e5e5ea;
   }
 
   [data-theme="dark"] {
@@ -43,6 +46,8 @@
     --error-bg: #3a1c1a;
     --warn: #ff9f0a;
     --warn-bg: #3a2c14;
+    --success: #30d158;
+    --success-bg: #163a1d;
     --overlay: rgba(0,0,0,0.6);
     --shadow: 0 1px 3px rgba(0,0,0,0.3);
     --shadow-popup: 0 10px 40px rgba(0,0,0,0.6);
@@ -50,6 +55,7 @@
     --btn-close-pressed: #3a3a3c;
     --switch-bg: #48484a;
     --switch-knob: #ffffff;
+    --progress-bg: #38383a;
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -67,14 +73,19 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 8px 0 20px;
-    gap: 12px;
+    margin: 8px 0 6px;
+    gap: 10px;
   }
   .topbar h1 {
     font-size: 22px;
     font-weight: 700;
     margin: 0;
-    flex: 1;
+  }
+  .topbar .date {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    text-align: left;
   }
 
   .theme-switch {
@@ -136,7 +147,7 @@
     margin-top: 12px;
   }
   label:first-child { margin-top: 0; }
-  input[type="number"], select {
+  input[type="number"], input[type="text"], select {
     width: 100%;
     font-size: 17px;
     padding: 12px 14px;
@@ -148,7 +159,7 @@
     appearance: none;
     transition: border-color 0.15s, background 0.25s, color 0.25s;
   }
-  input[type="number"]:focus, select:focus {
+  input:focus, select:focus {
     outline: none;
     border-color: var(--accent);
   }
@@ -157,6 +168,10 @@
     background-repeat: no-repeat;
     background-position: right 14px center;
     padding-right: 38px;
+  }
+  input.error {
+    border-color: var(--error) !important;
+    background: var(--error-bg);
   }
 
   .buttons {
@@ -228,7 +243,7 @@
     border-top: 1px solid transparent;
   }
   .accordion.open .accordion-body {
-    max-height: 500px;
+    max-height: 700px;
     padding: 4px 16px 16px;
     border-top: 1px solid var(--border-light);
   }
@@ -287,6 +302,17 @@
     gap: 6px;
   }
   .snowflake { color: #1c6dd0; font-size: 17px; line-height: 1; }
+
+  .optional-field {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+  }
+  .optional-field.open {
+    max-height: 120px;
+    opacity: 1;
+  }
 
   .popup-overlay {
     position: fixed;
@@ -367,15 +393,38 @@
     align-items: center;
     gap: 8px;
   }
-  .alert.warn {
-    background: var(--warn-bg);
-    color: var(--warn);
+  .alert.warn { background: var(--warn-bg); color: var(--warn); }
+  .alert.error { background: var(--error-bg); color: var(--error); font-weight: 600; }
+  .alert.success { background: var(--success-bg); color: var(--success); font-weight: 600; }
+
+  /* Прогресс-бар бака */
+  .progress-wrap {
+    margin: 12px 0 6px;
   }
-  .alert.error {
-    background: var(--error-bg);
-    color: var(--error);
-    font-weight: 600;
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
   }
+  .progress-bar {
+    width: 100%;
+    height: 12px;
+    background: var(--progress-bg);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s ease, background 0.3s ease;
+    width: 0%;
+  }
+  .progress-fill.green { background: var(--success); }
+  .progress-fill.yellow { background: var(--warn); }
+  .progress-fill.red { background: var(--error); }
 
   .details {
     margin-top: 14px;
@@ -411,10 +460,20 @@
     <span class="knob"></span>
   </div>
 </div>
+<div class="date" id="dateLine"></div>
 
 <div class="card">
   <label for="car">Машина</label>
   <select id="car"></select>
+
+  <label class="checkbox-row" for="useCustomRate" style="margin-top:6px;">
+    <input type="checkbox" id="useCustomRate">
+    <span class="box"></span>
+    <span class="cb-label">Другой расход (свой)</span>
+  </label>
+  <div class="optional-field" id="customRateField">
+    <input id="customRate" type="text" inputmode="decimal" placeholder="00.0 л/100км">
+  </div>
 
   <label for="odoStart">Спидометр при выезде</label>
   <input id="odoStart" type="number" inputmode="numeric" step="1" placeholder="00000 км">
@@ -428,8 +487,23 @@
   <label for="refuel">Заправка</label>
   <input id="refuel" type="number" inputmode="decimal" step="0.1" placeholder="00.0 л">
 
-  <label for="zeroTrip">Нулевой пробег</label>
-  <input id="zeroTrip" type="number" inputmode="numeric" step="1" placeholder="00 км">
+  <label class="checkbox-row" for="useZeroTrip">
+    <input type="checkbox" id="useZeroTrip">
+    <span class="box"></span>
+    <span class="cb-label">Нулевой пробег</span>
+  </label>
+  <div class="optional-field" id="zeroTripField">
+    <input id="zeroTrip" type="number" inputmode="numeric" step="1" placeholder="00 км">
+  </div>
+
+  <label class="checkbox-row" for="useActualFuel">
+    <input type="checkbox" id="useActualFuel">
+    <span class="box"></span>
+    <span class="cb-label">Фактическое топливо в баке</span>
+  </label>
+  <div class="optional-field" id="actualFuelField">
+    <input id="actualFuel" type="number" inputmode="decimal" step="0.1" placeholder="00.0 л">
+  </div>
 </div>
 
 <div class="accordion" id="winterAccordion">
@@ -444,7 +518,7 @@
       <span class="cb-label">Отрицательная температура <span class="snowflake">❄</span></span>
     </label>
 
-    <label for="engineHours">Время работы двигателя</label>
+    <label for="engineHours">Время работы двигателя (макс. 12 ч)</label>
     <input id="engineHours" type="number" inputmode="decimal" step="0.1" placeholder="0.0 ч">
 
     <label for="coef">Коэффициент</label>
@@ -477,6 +551,16 @@
       <span class="value big" id="fuelEnd">—</span>
     </div>
 
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Бак</span>
+        <span id="tankPercent">—</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill green" id="progressFill"></div>
+      </div>
+    </div>
+
     <div class="details">
       <h3>Расчёт</h3>
       <div class="detail-row"><span>Пробег за смену</span><span id="dTrip">—</span></div>
@@ -485,6 +569,7 @@
       <div class="detail-row" id="rowCoef"><span>Коэффициент</span><span id="dCoef">—</span></div>
       <div class="detail-row" id="rowWebasto"><span>Вебасто (часы × л/ч)</span><span id="dWebasto">—</span></div>
       <div class="detail-row"><span>Общий расход за смену</span><span id="dTotal">—</span></div>
+      <div class="detail-row" id="rowActual"><span>Факт vs расчёт</span><span id="dActual">—</span></div>
     </div>
   </div>
 </div>
@@ -497,8 +582,7 @@
     { name: "Форд",    rate: 11.7, tank: 80 }
   ];
 
-  const savedCar = localStorage.getItem("calc_car_index");
-  const initialCarIndex = savedCar !== null ? parseInt(savedCar, 10) : 0;
+  const STORAGE_KEY = "calc_draft_v1";
 
   const carSelect = document.getElementById("car");
   cars.forEach(function(car, i) {
@@ -507,12 +591,18 @@
     opt.textContent = car.name + " (" + car.rate + " л/100км, бак " + car.tank + " л)";
     carSelect.appendChild(opt);
   });
-  carSelect.value = initialCarIndex;
 
-  carSelect.addEventListener("change", function() {
-    localStorage.setItem("calc_car_index", carSelect.value);
-  });
+  // === Дата ===
+  function updateDate() {
+    const d = new Date();
+    const months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+    const days = ["вс","пн","вт","ср","чт","пт","сб"];
+    document.getElementById("dateLine").textContent =
+      d.getDate() + " " + months[d.getMonth()] + ", " + days[d.getDay()];
+  }
+  updateDate();
 
+  // === Тема ===
   const savedTheme = localStorage.getItem("calc_theme");
 
   function applyTheme(theme) {
@@ -523,8 +613,13 @@
     }
   }
 
-  const systemDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  applyTheme(savedTheme || (systemDark ? "dark" : "light"));
+  // При первом запуске — по времени суток (07:00–19:00 светлая)
+  function themeByTime() {
+    const h = new Date().getHours();
+    return (h >= 7 && h < 19) ? "light" : "dark";
+  }
+
+  applyTheme(savedTheme || themeByTime());
 
   function toggleTheme() {
     const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
@@ -535,14 +630,10 @@
   }
 
   function vibrate(ms) {
-    if (navigator.vibrate) {
-      try { navigator.vibrate(ms); } catch (e) {}
-    }
+    if (navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) {} }
   }
   function vibratePattern(pattern) {
-    if (navigator.vibrate) {
-      try { navigator.vibrate(pattern); } catch (e) {}
-    }
+    if (navigator.vibrate) { try { navigator.vibrate(pattern); } catch (e) {} }
   }
 
   function floor1(x) { return Math.floor(x * 10) / 10; }
@@ -551,6 +642,7 @@
   function toggleWinter() {
     document.getElementById("winterAccordion").classList.toggle("open");
     vibrate(10);
+    saveDraft();
   }
 
   function openPopup() {
@@ -563,22 +655,10 @@
     if (e.target.id === "popupOverlay") closePopup();
   }
 
-  function clearFields() {
-    document.getElementById("odoStart").value = "";
-    document.getElementById("fuelStart").value = "";
-    document.getElementById("trip").value = "";
-    document.getElementById("refuel").value = "";
-    document.getElementById("zeroTrip").value = "";
-    document.getElementById("engineHours").value = "";
-    document.getElementById("coef").value = "";
-    vibrate(20);
-  }
-
-  // === Ограничение целых чисел в полях: спидометр, пробег, нулевой ===
+  // === Только цифры ===
   function onlyDigits(inputId) {
     const el = document.getElementById(inputId);
     el.addEventListener("input", function() {
-      // Убираем всё, кроме цифр
       const cleaned = el.value.replace(/[^0-9]/g, "");
       if (cleaned !== el.value) el.value = cleaned;
     });
@@ -587,19 +667,188 @@
   onlyDigits("trip");
   onlyDigits("zeroTrip");
 
+  // === Расход до десятых (цифры + одна точка, максимум 1 знак) ===
+  function decimal1(inputId) {
+    const el = document.getElementById(inputId);
+    el.addEventListener("input", function() {
+      let v = el.value.replace(/[^0-9.]/g, "");
+      const firstDot = v.indexOf(".");
+      if (firstDot !== -1) {
+        v = v.substring(0, firstDot + 1) + v.substring(firstDot + 1).replace(/\./g, "");
+        const parts = v.split(".");
+        if (parts[1] && parts[1].length > 1) {
+          v = parts[0] + "." + parts[1].substring(0, 1);
+        }
+      }
+      if (v !== el.value) el.value = v;
+    });
+  }
+  decimal1("customRate");
+
+  // === Опциональные поля ===
+  function bindOptional(checkboxId, fieldId) {
+    const cb = document.getElementById(checkboxId);
+    const field = document.getElementById(fieldId);
+    function update() {
+      if (cb.checked) field.classList.add("open");
+      else field.classList.remove("open");
+    }
+    cb.addEventListener("change", function() { update(); saveDraft(); vibrate(10); });
+    update();
+  }
+  bindOptional("useZeroTrip", "zeroTripField");
+  bindOptional("useActualFuel", "actualFuelField");
+  bindOptional("useCustomRate", "customRateField");
+
+  // === Автосохранение черновика ===
+  const draftFields = ["odoStart","fuelStart","trip","refuel","zeroTrip","actualFuel","engineHours","coef","customRate"];
+  const draftCheckboxes = ["useZeroTrip","useActualFuel","useCustomRate","negTemp"];
+
+  function saveDraft() {
+    const data = {
+      carIndex: carSelect.value,
+      winterOpen: document.getElementById("winterAccordion").classList.contains("open"),
+      fields: {},
+      checkboxes: {}
+    };
+    draftFields.forEach(function(id) {
+      data.fields[id] = document.getElementById(id).value;
+    });
+    draftCheckboxes.forEach(function(id) {
+      data.checkboxes[id] = document.getElementById(id).checked;
+    });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+  }
+
+  function loadDraft() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data.carIndex !== undefined) {
+        // Восстановить машину или сохранённую ранее (если есть отдельный ключ)
+        carSelect.value = data.carIndex;
+      }
+      if (data.checkboxes) {
+        draftCheckboxes.forEach(function(id) {
+          if (data.checkboxes[id] !== undefined) {
+            document.getElementById(id).checked = data.checkboxes[id];
+          }
+        });
+      }
+      if (data.fields) {
+        draftFields.forEach(function(id) {
+          if (data.fields[id] !== undefined) {
+            document.getElementById(id).value = data.fields[id];
+          }
+        });
+      }
+      if (data.winterOpen) {
+        document.getElementById("winterAccordion").classList.add("open");
+      }
+      // Обновить видимость опциональных полей
+      bindOptional("useZeroTrip", "zeroTripField");
+      bindOptional("useActualFuel", "actualFuelField");
+      bindOptional("useCustomRate", "customRateField");
+    } catch (e) {}
+  }
+
+  // Навешиваем автосохранение на все поля
+  draftFields.forEach(function(id) {
+    document.getElementById(id).addEventListener("input", saveDraft);
+  });
+  draftCheckboxes.forEach(function(id) {
+    document.getElementById(id).addEventListener("change", saveDraft);
+  });
+  carSelect.addEventListener("change", function() { saveDraft(); });
+
+  loadDraft();
+
+  function clearFields() {
+    draftFields.forEach(function(id) {
+      document.getElementById(id).value = "";
+    });
+    document.getElementById("negTemp").checked = true;
+    document.getElementById("useZeroTrip").checked = false;
+    document.getElementById("useActualFuel").checked = false;
+    document.getElementById("useCustomRate").checked = false;
+    bindOptional("useZeroTrip", "zeroTripField");
+    bindOptional("useActualFuel", "actualFuelField");
+    bindOptional("useCustomRate", "customRateField");
+    localStorage.removeItem(STORAGE_KEY);
+    vibrate(20);
+  }
+
+  // === Анимация счётчика ===
+  function animateValue(el, endValue, suffix, decimals) {
+    const duration = 500;
+    const start = performance.now();
+    const startValue = 0;
+    function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      const current = startValue + (endValue - startValue) * eased;
+      el.textContent = current.toFixed(decimals) + suffix;
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = endValue.toFixed(decimals) + suffix;
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // === Прогресс-бар бака ===
+  function updateProgress(fuelEnd, tank) {
+    const percent = Math.max(0, Math.min(100, (fuelEnd / tank) * 100));
+    const fill = document.getElementById("progressFill");
+    fill.style.width = percent + "%";
+    fill.classList.remove("green", "yellow", "red");
+    if (percent > 50) fill.classList.add("green");
+    else if (percent >= 20) fill.classList.add("yellow");
+    else fill.classList.add("red");
+    document.getElementById("tankPercent").textContent =
+      fmt1(fuelEnd) + " л из " + tank + " л (" + Math.round(percent) + "%)";
+  }
+
   function calculate() {
+    // Сброс подсветки ошибок
+    document.getElementById("engineHours").classList.remove("error");
+
     const carIndex = parseInt(carSelect.value, 10);
     const car = cars[carIndex];
-    const rate = car.rate;
     const tank = car.tank;
+
+    const useCustomRate = document.getElementById("useCustomRate").checked;
+    let rate;
+    if (useCustomRate) {
+      const cr = parseFloat(document.getElementById("customRate").value);
+      if (isNaN(cr) || cr <= 0) {
+        vibratePattern([50, 30, 50]);
+        alert("Введи корректный «Другой расход»");
+        return;
+      }
+      rate = cr;
+    } else {
+      rate = car.rate;
+    }
 
     const odoStart = parseFloat(document.getElementById("odoStart").value);
     const fuelStart = parseFloat(document.getElementById("fuelStart").value);
     const trip = parseFloat(document.getElementById("trip").value);
     const refuelRaw = document.getElementById("refuel").value;
     const refuel = refuelRaw === "" ? 0 : parseFloat(refuelRaw);
-    const zeroRaw = document.getElementById("zeroTrip").value;
-    const zeroTrip = zeroRaw === "" ? null : parseFloat(zeroRaw);
+
+    const useZero = document.getElementById("useZeroTrip").checked;
+    let zeroTrip = null;
+    if (useZero) {
+      const z = document.getElementById("zeroTrip").value;
+      zeroTrip = z === "" ? null : parseFloat(z);
+    }
+
+    const useActual = document.getElementById("useActualFuel").checked;
+    let actualFuel = null;
+    if (useActual) {
+      const a = document.getElementById("actualFuel").value;
+      actualFuel = a === "" ? null : parseFloat(a);
+    }
 
     const negTemp = document.getElementById("negTemp").checked;
     const hoursRaw = document.getElementById("engineHours").value;
@@ -607,25 +856,27 @@
     const coefRaw = document.getElementById("coef").value;
     const coef = coefRaw === "" ? 1 : parseFloat(coefRaw);
 
-    // Основная проверка
     if (isNaN(odoStart) || isNaN(fuelStart) || isNaN(trip)) {
       vibratePattern([50, 30, 50]);
       alert("Заполни спидометр, топливо и пробег");
       return;
     }
 
-    // === Проверка нулевого пробега ===
+    // Проверка нулевого
     if (zeroTrip !== null) {
-      if (zeroTrip < 0) {
+      if (zeroTrip < 0 || zeroTrip > trip) {
         vibratePattern([200, 80, 200, 80, 200]);
-        alert("Нулевой пробег не может быть отрицательным!");
+        alert("Нулевой пробег должен быть от 0 до " + trip + " км");
         return;
       }
-      if (zeroTrip > trip) {
-        vibratePattern([200, 80, 200, 80, 200]);
-        alert("Нулевой пробег (" + zeroTrip + " км) больше, чем пробег за смену (" + trip + " км)!\n\nТакого не может быть — проверь данные.");
-        return;
-      }
+    }
+
+    // Проверка Вебасто — не больше 12 ч
+    if (hours > 12) {
+      document.getElementById("engineHours").classList.add("error");
+      vibratePattern([200, 80, 200, 80, 200]);
+      alert("Время работы двигателя не может быть больше 12 часов (смена 12 ч)");
+      return;
     }
 
     const byTripBase = trip * rate / 100;
@@ -648,7 +899,7 @@
       alertsBox.innerHTML += '<div class="alert error">⚠️ ТОПЛИВО УШЛО В МИНУС! Проверь данные.</div>';
       hasError = true;
     } else if (fuelEnd > tank) {
-      alertsBox.innerHTML += '<div class="alert error">⚠️ Топлива больше, чем объём бака (' + tank + ' л)! Проверь данные.</div>';
+      alertsBox.innerHTML += '<div class="alert error">⚠️ Топлива больше, чем объём бака (' + tank + ' л)!</div>';
       hasError = true;
     }
 
@@ -657,14 +908,11 @@
       hasWarn = true;
     }
 
-    if (hasError) {
-      vibratePattern([200, 80, 200, 80, 200]);
-    } else if (hasWarn) {
-      vibrate(80);
-    } else {
-      vibrate(15);
-    }
+    if (hasError) vibratePattern([200, 80, 200, 80, 200]);
+    else if (hasWarn) vibrate(80);
+    else vibrate(15);
 
+    // Нулевой
     if (zeroTrip !== null && zeroTrip > 0) {
       const odoEndNoZero = odoStart + (trip - zeroTrip);
       document.getElementById("odoEndNoZero").textContent = odoEndNoZero + " км";
@@ -675,11 +923,15 @@
       document.getElementById("labelOdoEnd").textContent = "Спидометр при возвращении";
     }
 
-    document.getElementById("odoEnd").textContent = odoEnd + " км";
-    document.getElementById("fuelEnd").textContent = fmt1(fuelEnd) + " л";
+    // Анимация счётчиков
+    animateValue(document.getElementById("odoEnd"), odoEnd, " км", 0);
+    animateValue(document.getElementById("fuelEnd"), fuelEnd, " л", 1);
+
+    // Прогресс-бар
+    updateProgress(fuelEnd, tank);
 
     document.getElementById("dTrip").textContent = trip + " км";
-    document.getElementById("dRate").textContent = rate + " л/100км";
+    document.getElementById("dRate").textContent = rate + " л/100км" + (useCustomRate ? " (свой)" : "");
     document.getElementById("dByTrip").textContent = fmt1(byTripBase) + " л";
 
     if (coef !== 1) {
@@ -699,6 +951,28 @@
 
     document.getElementById("dTotal").textContent =
       fmt1(total) + " л (точно: " + totalRaw.toFixed(3) + ")";
+
+    // Факт vs расчёт
+    if (actualFuel !== null) {
+      const diff = actualFuel - fuelEnd;
+      const row = document.getElementById("rowActual");
+      const val = document.getElementById("dActual");
+      row.style.display = "flex";
+      if (Math.abs(diff) < 0.05) {
+        val.style.color = "var(--text)";
+        val.textContent = "совпадает";
+      } else if (diff < 0) {
+        val.style.color = "var(--error)";
+        val.textContent = "недостача " + fmt1(Math.abs(diff)) + " л";
+        alertsBox.innerHTML += '<div class="alert error">🔻 Недостача: по факту ' + fmt1(actualFuel) + ' л, по расчёту ' + fmt1(fuelEnd) + ' л (разница ' + fmt1(Math.abs(diff)) + ' л)</div>';
+      } else {
+        val.style.color = "var(--success)";
+        val.textContent = "излишек " + fmt1(diff) + " л";
+        alertsBox.innerHTML += '<div class="alert success">🔺 Излишек: по факту ' + fmt1(actualFuel) + ' л, по расчёту ' + fmt1(fuelEnd) + ' л (разница ' + fmt1(diff) + ' л)</div>';
+      }
+    } else {
+      document.getElementById("rowActual").style.display = "none";
+    }
 
     openPopup();
   }
