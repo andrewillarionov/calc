@@ -398,13 +398,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 1px solid var(--border-light);
-    gap: 10px;
+    gap: 12px;
   }
   .row:last-child { border-bottom: none; }
-  .row .label { font-size: 15px; color: var(--text); }
-  .row .value { font-size: 17px; font-weight: 600; color: var(--text); text-align: right; }
+  .row .label { font-size: 15px; color: var(--text); line-height: 1.3; }
+  .row .value { font-size: 17px; font-weight: 600; color: var(--text); text-align: right; white-space: nowrap; }
   .row .value.big { font-size: 20px; color: var(--accent); }
   .row .value.medium { font-size: 18px; color: var(--text); }
 
@@ -414,8 +414,8 @@
     color: var(--text-light);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 14px 0 6px;
-    margin-top: 6px;
+    padding: 16px 0 4px;
+    margin-top: 8px;
     border-top: 1px solid var(--border-light);
   }
   .subheader:first-child {
@@ -429,7 +429,7 @@
     border-radius: 12px;
     font-size: 14px;
     font-weight: 500;
-    margin: 8px 0;
+    margin: 10px 0;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -439,7 +439,7 @@
   .alert.success { background: var(--success-bg); color: var(--success); font-weight: 600; }
 
   .progress-wrap {
-    margin: 12px 0 6px;
+    margin: 16px 0 8px;
   }
   .progress-label {
     display: flex;
@@ -467,14 +467,14 @@
   .progress-fill.red { background: var(--error); }
 
   .details {
-    margin-top: 14px;
-    padding-top: 14px;
+    margin-top: 18px;
+    padding-top: 16px;
     border-top: 1px solid var(--border-light);
   }
   .details h3 {
     font-size: 13px;
     color: var(--text-light);
-    margin: 0 0 8px;
+    margin: 0 0 10px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -484,8 +484,8 @@
     justify-content: space-between;
     font-size: 14px;
     color: var(--text-dim);
-    padding: 5px 0;
-    gap: 10px;
+    padding: 7px 0;
+    gap: 12px;
   }
   .detail-row span:last-child { color: var(--text); font-weight: 500; text-align: right; }
 </style>
@@ -581,35 +581,30 @@
 
     <div id="alerts"></div>
 
-    <div class="subheader">Лицевая сторона (гараж)</div>
-    <div class="row">
-      <span class="label">Спидометр при выезде</span>
-      <span class="value big" id="odoStartShow">—</span>
-    </div>
+    <div class="subheader">Лицевая сторона путевки</div>
     <div class="row">
       <span class="label">Спидометр при возвращении</span>
       <span class="value big" id="odoEnd">—</span>
     </div>
+    <div class="row">
+      <span class="label">Топливо при возвращении</span>
+      <span class="value big" id="fuelEnd">—</span>
+    </div>
 
     <div id="backSideBlock">
-      <div class="subheader">Обратная сторона (подстанция)</div>
+      <div class="subheader">Обратная сторона путевки</div>
       <div class="row" id="rowOdoStationStart" style="display:none;">
-        <span class="label">Спидометр при выезде на подстанции</span>
+        <span class="label">Спидометр по прибытии на подстанцию</span>
         <span class="value medium" id="odoStationStart">—</span>
       </div>
       <div class="row" id="rowOdoStationEnd" style="display:none;">
-        <span class="label">Спидометр при возвращении с подстанции</span>
+        <span class="label">Спидометр при выезде с подстанции</span>
         <span class="value medium" id="odoStationEnd">—</span>
       </div>
       <div class="row" id="rowWorkTrip" style="display:none;">
         <span class="label">Рабочий пробег (без нулевых)</span>
         <span class="value medium" id="workTrip">—</span>
       </div>
-    </div>
-
-    <div class="row" style="margin-top: 6px;">
-      <span class="label">Топливо при возвращении</span>
-      <span class="value big" id="fuelEnd">—</span>
     </div>
 
     <div class="progress-wrap">
@@ -917,7 +912,6 @@
       return;
     }
 
-    // Проверка нулевых: сумма не может быть больше общего пробега
     if (useZero) {
       if (zeroFrom < 0 || zeroTo < 0) {
         vibratePattern([200, 80, 200, 80, 200]);
@@ -972,8 +966,8 @@
     else vibrate(15);
 
     // Лицевая сторона
-    document.getElementById("odoStartShow").textContent = odoStart + " км";
     animateValue(document.getElementById("odoEnd"), odoEnd, " км", 0);
+    animateValue(document.getElementById("fuelEnd"), fuelEnd, " л", 1);
 
     // Обратная сторона (если есть нулевые)
     const backBlock = document.getElementById("backSideBlock");
@@ -1007,7 +1001,6 @@
       backBlock.style.display = "none";
     }
 
-    animateValue(document.getElementById("fuelEnd"), fuelEnd, " л", 1);
     updateProgress(fuelEnd, tank);
 
     document.getElementById("dTrip").textContent = trip + " км";
