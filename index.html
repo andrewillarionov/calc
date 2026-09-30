@@ -13,7 +13,7 @@
     --text-dim: #6e6e73;
     --text-light: #8e8e93;
     --border: #d1d1d6;
-    --border-light: #f2f2f7;
+    --border-light: #ececef;
     --accent: #007aff;
     --accent-pressed: #0062cc;
     --error: #ff3b30;
@@ -338,6 +338,7 @@
     margin-top: 0;
   }
 
+  /* ==== ПОПАП ==== */
   .popup-overlay {
     position: fixed;
     inset: 0;
@@ -359,7 +360,7 @@
     max-width: 420px;
     max-height: 90vh;
     overflow-y: auto;
-    padding: 20px;
+    padding: 24px 20px 20px;
     transform: scale(0.92);
     opacity: 0;
     transition: transform 0.3s ease, opacity 0.3s ease, background 0.25s;
@@ -369,8 +370,8 @@
   .popup-overlay.open .popup { transform: scale(1); opacity: 1; }
   .popup-close {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 12px;
+    right: 12px;
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -385,69 +386,76 @@
     justify-content: center;
   }
   .popup-close:active { background: var(--btn-close-pressed); }
-  .popup h2 {
-    font-size: 14px;
-    color: var(--text-dim);
-    margin: 0 0 16px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+
+  .popup-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 20px;
     padding-right: 40px;
   }
-  .row {
+
+  /* Заголовок блока в попапе */
+  .popup-section {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 0 0 8px;
+  }
+
+  /* Блок строк */
+  .info-block {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 4px 14px;
+    margin-bottom: 18px;
+  }
+  [data-theme="dark"] .info-block {
+    background: #0d0d0f;
+  }
+
+  .info-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12px 0;
     gap: 12px;
+    border-bottom: 1px solid var(--border-light);
   }
-  .row + .row {
-    border-top: 1px solid var(--border-light);
+  .info-row:last-child {
+    border-bottom: none;
   }
-  .row .label { font-size: 15px; color: var(--text); line-height: 1.3; }
-  .row .value { font-size: 17px; font-weight: 600; color: var(--text); text-align: right; white-space: nowrap; }
-  .row .value.big { font-size: 20px; color: var(--accent); }
-  .row .value.medium { font-size: 18px; color: var(--text); }
-
-  .section-title {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-light);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 28px 0 4px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-light);
+  .info-row .label {
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.3;
+    margin: 0;
   }
-  .section-title:first-child {
-    border-top: none;
-    padding-top: 0;
-    margin-top: 0;
+  .info-row .value {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .info-row .value.big {
+    font-size: 20px;
+    color: var(--accent);
   }
 
-  .alert {
-    padding: 12px 14px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    margin: 10px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .alert.warn { background: var(--warn-bg); color: var(--warn); }
-  .alert.error { background: var(--error-bg); color: var(--error); font-weight: 600; }
-  .alert.success { background: var(--success-bg); color: var(--success); font-weight: 600; }
-
+  /* Прогресс-бар */
   .progress-wrap {
-    margin: 20px 0 8px;
+    margin: 0 0 18px;
+    padding: 0 4px;
   }
   .progress-label {
     display: flex;
     justify-content: space-between;
     font-size: 13px;
     color: var(--text-dim);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
   .progress-bar {
     width: 100%;
@@ -467,28 +475,47 @@
   .progress-fill.yellow { background: var(--warn); }
   .progress-fill.red { background: var(--error); }
 
-  .details {
-    margin-top: 28px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border-light);
+  /* Блок «Расчёт» */
+  .details-block {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 4px 14px;
   }
-  .details h3 {
-    font-size: 13px;
-    color: var(--text-light);
-    margin: 0 0 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  [data-theme="dark"] .details-block {
+    background: #0d0d0f;
   }
-  .detail-row {
+  .details-block .detail-row {
     display: flex;
     justify-content: space-between;
     font-size: 14px;
     color: var(--text-dim);
-    padding: 7px 0;
+    padding: 10px 0;
     gap: 12px;
+    border-bottom: 1px solid var(--border-light);
   }
-  .detail-row span:last-child { color: var(--text); font-weight: 500; text-align: right; }
+  .details-block .detail-row:last-child {
+    border-bottom: none;
+  }
+  .details-block .detail-row span:last-child {
+    color: var(--text);
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* Алерты */
+  .alert {
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .alert.warn { background: var(--warn-bg); color: var(--warn); }
+  .alert.error { background: var(--error-bg); color: var(--error); font-weight: 600; }
+  .alert.success { background: var(--success-bg); color: var(--success); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -578,33 +605,37 @@
 <div class="popup-overlay" id="popupOverlay" onclick="overlayClick(event)">
   <div class="popup">
     <button class="popup-close" onclick="closePopup()">✕</button>
-    <h2>Результат</h2>
+    <h2 class="popup-title">Результат</h2>
 
     <div id="alerts"></div>
 
-    <div class="section-title">Лицевая сторона путевки</div>
-    <div class="row">
-      <span class="label">Спидометр при возвращении</span>
-      <span class="value big" id="odoEnd">—</span>
-    </div>
-    <div class="row">
-      <span class="label">Топливо при возвращении</span>
-      <span class="value big" id="fuelEnd">—</span>
+    <div class="popup-section">Лицевая сторона путевки</div>
+    <div class="info-block">
+      <div class="info-row">
+        <span class="label">Спидометр при возвращении</span>
+        <span class="value big" id="odoEnd">—</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Топливо при возвращении</span>
+        <span class="value big" id="fuelEnd">—</span>
+      </div>
     </div>
 
     <div id="backSideBlock">
-      <div class="section-title">Обратная сторона путевки</div>
-      <div class="row" id="rowOdoStationStart" style="display:none;">
-        <span class="label">Спидометр по прибытии на подстанцию</span>
-        <span class="value medium" id="odoStationStart">—</span>
-      </div>
-      <div class="row" id="rowOdoStationEnd" style="display:none;">
-        <span class="label">Спидометр при выезде с подстанции</span>
-        <span class="value medium" id="odoStationEnd">—</span>
-      </div>
-      <div class="row" id="rowWorkTrip" style="display:none;">
-        <span class="label">Рабочий пробег (без нулевых)</span>
-        <span class="value medium" id="workTrip">—</span>
+      <div class="popup-section">Обратная сторона путевки</div>
+      <div class="info-block">
+        <div class="info-row" id="rowOdoStationStart" style="display:none;">
+          <span class="label">Спидометр по прибытии на подстанцию</span>
+          <span class="value" id="odoStationStart">—</span>
+        </div>
+        <div class="info-row" id="rowOdoStationEnd" style="display:none;">
+          <span class="label">Спидометр при выезде с подстанции</span>
+          <span class="value" id="odoStationEnd">—</span>
+        </div>
+        <div class="info-row" id="rowWorkTrip" style="display:none;">
+          <span class="label">Рабочий пробег (без нулевых)</span>
+          <span class="value" id="workTrip">—</span>
+        </div>
       </div>
     </div>
 
@@ -618,8 +649,8 @@
       </div>
     </div>
 
-    <div class="details">
-      <h3>Расчёт</h3>
+    <div class="popup-section">Расчёт</div>
+    <div class="details-block">
       <div class="detail-row"><span>Пробег за смену (общий)</span><span id="dTrip">—</span></div>
       <div class="detail-row"><span>Норма расхода</span><span id="dRate">—</span></div>
       <div class="detail-row"><span>Расход по пробегу</span><span id="dByTrip">—</span></div>
