@@ -87,7 +87,6 @@
     flex-shrink: 0;
   }
 
-  /* Дата — отдельной строкой, по центру экрана */
   .date-line {
     font-size: 15px;
     font-weight: 600;
@@ -326,9 +325,17 @@
     margin-top: 0;
   }
   .optional-field.open {
-    max-height: 120px;
+    max-height: 300px;
     opacity: 1;
     margin-top: var(--gap-label);
+  }
+  .optional-field .inner-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin: 10px 0 4px;
+  }
+  .optional-field .inner-label:first-child {
+    margin-top: 0;
   }
 
   .popup-overlay {
@@ -399,6 +406,23 @@
   .row .label { font-size: 15px; color: var(--text); }
   .row .value { font-size: 17px; font-weight: 600; color: var(--text); text-align: right; }
   .row .value.big { font-size: 20px; color: var(--accent); }
+  .row .value.medium { font-size: 18px; color: var(--text); }
+
+  .subheader {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 0 6px;
+    margin-top: 6px;
+    border-top: 1px solid var(--border-light);
+  }
+  .subheader:first-child {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
 
   .alert {
     padding: 12px 14px;
@@ -491,13 +515,13 @@
     <input id="customRate" type="text" inputmode="decimal" placeholder="00.0 л/100км">
   </div>
 
-  <label for="odoStart" style="margin-top: var(--gap);">Спидометр при выезде</label>
+  <label for="odoStart" style="margin-top: var(--gap);">Спидометр при выезде (гараж)</label>
   <input id="odoStart" type="number" inputmode="numeric" step="1" placeholder="00000 км">
 
   <label for="fuelStart" style="margin-top: var(--gap);">Топливо при выезде</label>
   <input id="fuelStart" type="number" inputmode="decimal" step="0.1" placeholder="00.0 л">
 
-  <label for="trip" style="margin-top: var(--gap);">Пробег за смену</label>
+  <label for="trip" style="margin-top: var(--gap);">Пробег за смену (общий)</label>
   <input id="trip" type="number" inputmode="numeric" step="1" placeholder="000 км">
 
   <label for="refuel" style="margin-top: var(--gap);">Заправка</label>
@@ -509,7 +533,10 @@
     <span class="cb-label">Нулевой пробег</span>
   </label>
   <div class="optional-field" id="zeroTripField">
-    <input id="zeroTrip" type="number" inputmode="numeric" step="1" placeholder="00 км">
+    <div class="inner-label">Из гаража на подстанцию</div>
+    <input id="zeroFromGarage" type="number" inputmode="numeric" step="1" placeholder="00 км">
+    <div class="inner-label">С подстанции в гараж</div>
+    <input id="zeroToGarage" type="number" inputmode="numeric" step="1" placeholder="00 км">
   </div>
 
   <label class="checkbox-row" for="useActualFuel">
@@ -554,15 +581,33 @@
 
     <div id="alerts"></div>
 
-    <div class="row" id="rowOdoEnd">
-      <span class="label" id="labelOdoEnd">Спидометр при возвращении</span>
-      <span class="value big" id="odoEnd">—</span>
-    </div>
-    <div class="row" id="rowOdoEndNoZero" style="display:none;">
-      <span class="label">Спидометр без нулевого пробега</span>
-      <span class="value big" id="odoEndNoZero">—</span>
+    <div class="subheader">Лицевая сторона (гараж)</div>
+    <div class="row">
+      <span class="label">Спидометр при выезде</span>
+      <span class="value big" id="odoStartShow">—</span>
     </div>
     <div class="row">
+      <span class="label">Спидометр при возвращении</span>
+      <span class="value big" id="odoEnd">—</span>
+    </div>
+
+    <div id="backSideBlock">
+      <div class="subheader">Обратная сторона (подстанция)</div>
+      <div class="row" id="rowOdoStationStart" style="display:none;">
+        <span class="label">Спидометр при выезде на подстанции</span>
+        <span class="value medium" id="odoStationStart">—</span>
+      </div>
+      <div class="row" id="rowOdoStationEnd" style="display:none;">
+        <span class="label">Спидометр при возвращении с подстанции</span>
+        <span class="value medium" id="odoStationEnd">—</span>
+      </div>
+      <div class="row" id="rowWorkTrip" style="display:none;">
+        <span class="label">Рабочий пробег (без нулевых)</span>
+        <span class="value medium" id="workTrip">—</span>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 6px;">
       <span class="label">Топливо при возвращении</span>
       <span class="value big" id="fuelEnd">—</span>
     </div>
@@ -579,7 +624,7 @@
 
     <div class="details">
       <h3>Расчёт</h3>
-      <div class="detail-row"><span>Пробег за смену</span><span id="dTrip">—</span></div>
+      <div class="detail-row"><span>Пробег за смену (общий)</span><span id="dTrip">—</span></div>
       <div class="detail-row"><span>Норма расхода</span><span id="dRate">—</span></div>
       <div class="detail-row"><span>Расход по пробегу</span><span id="dByTrip">—</span></div>
       <div class="detail-row" id="rowCoef"><span>Коэффициент</span><span id="dCoef">—</span></div>
@@ -677,17 +722,15 @@
   }
   onlyDigits("odoStart");
   onlyDigits("trip");
-  onlyDigits("zeroTrip");
+  onlyDigits("zeroFromGarage");
+  onlyDigits("zeroToGarage");
 
-  // Принимает и точку, и запятую. Разрешает одну дробную часть до 1 знака.
   function decimal1(inputId) {
     const el = document.getElementById(inputId);
     el.addEventListener("input", function() {
-      // заменяем запятую на точку
       let v = el.value.replace(/,/g, ".").replace(/[^0-9.]/g, "");
       const firstDot = v.indexOf(".");
       if (firstDot !== -1) {
-        // оставляем только первую точку
         v = v.substring(0, firstDot + 1) + v.substring(firstDot + 1).replace(/\./g, "");
         const parts = v.split(".");
         if (parts[1] && parts[1].length > 1) {
@@ -713,7 +756,7 @@
   bindOptional("useActualFuel", "actualFuelField");
   bindOptional("useCustomRate", "customRateField");
 
-  const draftFields = ["odoStart","fuelStart","trip","refuel","zeroTrip","actualFuel","engineHours","coef","customRate"];
+  const draftFields = ["odoStart","fuelStart","trip","refuel","zeroFromGarage","zeroToGarage","actualFuel","engineHours","coef","customRate"];
   const draftCheckboxes = ["useZeroTrip","useActualFuel","useCustomRate","negTemp"];
 
   function saveDraft() {
@@ -843,11 +886,17 @@
     const refuel = refuelRaw === "" ? 0 : parseFloat(refuelRaw);
 
     const useZero = document.getElementById("useZeroTrip").checked;
-    let zeroTrip = null;
+    let zeroFrom = 0;
+    let zeroTo = 0;
     if (useZero) {
-      const z = document.getElementById("zeroTrip").value;
-      zeroTrip = z === "" ? null : parseFloat(z);
+      const zf = document.getElementById("zeroFromGarage").value;
+      const zt = document.getElementById("zeroToGarage").value;
+      zeroFrom = zf === "" ? 0 : parseFloat(zf);
+      zeroTo = zt === "" ? 0 : parseFloat(zt);
+      if (isNaN(zeroFrom)) zeroFrom = 0;
+      if (isNaN(zeroTo)) zeroTo = 0;
     }
+    const totalZero = zeroFrom + zeroTo;
 
     const useActual = document.getElementById("useActualFuel").checked;
     let actualFuel = null;
@@ -868,10 +917,16 @@
       return;
     }
 
-    if (zeroTrip !== null) {
-      if (zeroTrip < 0 || zeroTrip > trip) {
+    // Проверка нулевых: сумма не может быть больше общего пробега
+    if (useZero) {
+      if (zeroFrom < 0 || zeroTo < 0) {
         vibratePattern([200, 80, 200, 80, 200]);
-        alert("Нулевой пробег должен быть от 0 до " + trip + " км");
+        alert("Нулевые пробеги не могут быть отрицательными");
+        return;
+      }
+      if (totalZero > trip) {
+        vibratePattern([200, 80, 200, 80, 200]);
+        alert("Сумма нулевых пробегов (" + totalZero + " км) больше общего пробега (" + trip + " км)!\n\nТакого не может быть — проверь данные.");
         return;
       }
     }
@@ -916,19 +971,43 @@
     else if (hasWarn) vibrate(80);
     else vibrate(15);
 
-    if (zeroTrip !== null && zeroTrip > 0) {
-      const odoEndNoZero = odoStart + (trip - zeroTrip);
-      document.getElementById("odoEndNoZero").textContent = odoEndNoZero + " км";
-      document.getElementById("rowOdoEndNoZero").style.display = "flex";
-      document.getElementById("labelOdoEnd").textContent = "Спидометр при возвращении (общий)";
+    // Лицевая сторона
+    document.getElementById("odoStartShow").textContent = odoStart + " км";
+    animateValue(document.getElementById("odoEnd"), odoEnd, " км", 0);
+
+    // Обратная сторона (если есть нулевые)
+    const backBlock = document.getElementById("backSideBlock");
+    const rowStationStart = document.getElementById("rowOdoStationStart");
+    const rowStationEnd = document.getElementById("rowOdoStationEnd");
+    const rowWork = document.getElementById("rowWorkTrip");
+
+    if (useZero && (zeroFrom > 0 || zeroTo > 0)) {
+      backBlock.style.display = "block";
+
+      if (zeroFrom > 0) {
+        const stationStart = odoStart + zeroFrom;
+        document.getElementById("odoStationStart").textContent = stationStart + " км";
+        rowStationStart.style.display = "flex";
+      } else {
+        rowStationStart.style.display = "none";
+      }
+
+      if (zeroTo > 0) {
+        const stationEnd = odoEnd - zeroTo;
+        document.getElementById("odoStationEnd").textContent = stationEnd + " км";
+        rowStationEnd.style.display = "flex";
+      } else {
+        rowStationEnd.style.display = "none";
+      }
+
+      const work = trip - totalZero;
+      document.getElementById("workTrip").textContent = work + " км";
+      rowWork.style.display = "flex";
     } else {
-      document.getElementById("rowOdoEndNoZero").style.display = "none";
-      document.getElementById("labelOdoEnd").textContent = "Спидометр при возвращении";
+      backBlock.style.display = "none";
     }
 
-    animateValue(document.getElementById("odoEnd"), odoEnd, " км", 0);
     animateValue(document.getElementById("fuelEnd"), fuelEnd, " л", 1);
-
     updateProgress(fuelEnd, tank);
 
     document.getElementById("dTrip").textContent = trip + " км";
